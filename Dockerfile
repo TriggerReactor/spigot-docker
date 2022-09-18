@@ -2,7 +2,7 @@ ARG ALPINE_VERSION=3.9
 
 FROM alpine:${ALPINE_VERSION} AS builder
 ARG SPIGOT_VERSION=latest
-RUN apk --update --no-cache --progress -q add openjdk8-jre git
+RUN apk --update --no-cache --progress -q add openjdk16-jre-headless git
 RUN wget -q https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
 #RUN git config --global --unset core.autocrlf
 RUN java -Xmx1024M -jar BuildTools.jar --rev ${SPIGOT_VERSION}
@@ -26,7 +26,7 @@ LABEL org.label-schema.schema-version="1.0.0-rc1" \
     image-size="117MB" \
     ram-usage="500MB" \
     cpu-usage="Medium"
-RUN apk --update --no-cache --progress -q add openjdk8-jre && \
+RUN apk --update --no-cache --progress -q add openjdk16-jre-headless && \
     rm -rf /var/cache/apk/*
 ENV JAVA_OPTS -Xms512m -Xmx1800m -XX:+UseConcMarkSweepGC \
     ACCEPT_EULA=false
