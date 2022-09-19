@@ -38,4 +38,4 @@ COPY --from=builder "/mcrcon/mcrcon" .
 WORKDIR /spigot
 ENTRYPOINT ln -sf "../spigot-${SPIGOT_VERSION}.jar" "spigot-${SPIGOT_VERSION}.jar" && \
     echo "eula=$ACCEPT_EULA" > eula.txt && \
-    java -jar "spigot-${SPIGOT_VERSION}.jar" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 nogui
+    java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar "spigot-${SPIGOT_VERSION}.jar" nogui
