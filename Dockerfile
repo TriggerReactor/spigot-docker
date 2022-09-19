@@ -1,16 +1,21 @@
-ARG ALPINE_VERSION=3.9
-
-FROM alpine:${ALPINE_VERSION} AS builder
-ARG SPIGOT_VERSION=latest
-RUN apk --update --no-cache --progress -q add openjdk16-jre-headless git
+FROM openjdk:18-jdk-alpine AS builder
+ARG SPIGOT_VERSION=1.19.2
+RUN apk add git make gcc musl-dev \
+    --update \
+    --no-cache \
+    --progress \
+    -q
 RUN wget -q https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
 #RUN git config --global --unset core.autocrlf
 RUN java -Xmx1024M -jar BuildTools.jar --rev ${SPIGOT_VERSION}
 
-FROM alpine:$ALPINE_VERSION
+RUN git clone https://github.com/Tiiffi/mcrcon.git
+RUN cd mcrcon && make && make install
+
+FROM openjdk:18-jdk-alpine
 ARG BUILD_DATE
 ARG VCS_REF
-ARG SPIGOT_VERSION=latest
+ARG SPIGOT_VERSION=1.19.2
 LABEL org.label-schema.schema-version="1.0.0-rc1" \
     maintainer="quentin.mcgaw@gmail.com" \
     org.label-schema.build-date=$BUILD_DATE \
@@ -26,13 +31,11 @@ LABEL org.label-schema.schema-version="1.0.0-rc1" \
     image-size="117MB" \
     ram-usage="500MB" \
     cpu-usage="Medium"
-RUN apk --update --no-cache --progress -q add openjdk16-jre-headless && \
-    rm -rf /var/cache/apk/*
 ENV JAVA_OPTS -Xms512m -Xmx1800m -XX:+UseConcMarkSweepGC \
     ACCEPT_EULA=false
-COPY --from=builder "/spigot-$SPIGOT_VERSION.jar" .
-VOLUME /spigot
+COPY --from=builder "/spigot-${SPIGOT_VERSION}.jar" .
+COPY --from=builder "/mcrcon/mcrcon" .
 WORKDIR /spigot
-ENTRYPOINT ln -sf "../spigot-$SPIGOT_VERSION.jar" "spigot-$SPIGOT_VERSION.jar" && \
+ENTRYPOINT ln -sf "../spigot-${SPIGOT_VERSION}.jar" "spigot-${SPIGOT_VERSION}.jar" && \
     echo "eula=$ACCEPT_EULA" > eula.txt && \
-    java -jar "spigot-$SPIGOT_VERSION.jar" nogui
+    java -jar "spigot-${SPIGOT_VERSION}.jar" nogui
